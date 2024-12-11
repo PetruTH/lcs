@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion Classifier</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Emotion Classifier</h1>
+        <form method="post" id="emotion-form">
+            <label for="phrase">Enter a phrase:</label>
+            <input type="text" id="phrase" name="phrase" placeholder="Type your text here" required>
+            <button type="submit">Predict Emotion</button>
+        </form>
+        {% if predicted_label and confidence_score %}
+        <div class="result">
+            <h2>Prediction</h2>
+            <p>
+                The predicted emotion for <span class="highlight"> {{ phrase }} </span> is 
+                <span class="highlight2" id="label">{{ predicted_label }}</span> 
+                with a confidence score of 
+                <span class="highlight2" id="score">{{ confidence_score | round(2) }}</span>.
+            </p>
+        </div>
+        {% endif %}
+
+        <!-- Emotion Classification Buttons -->
+        <div class="button-container">
+            <button onclick="loadTable(0)">Sadness</button>
+            <button onclick="loadTable(1)">Joy</button>
+            <button onclick="loadTable(2)">Love</button>
+            <button onclick="loadTable(3)">Anger</button>
+            <button onclick="loadTable(4)">Fear</button>
+            <button onclick="loadTable(5)">Surprise</button>
+        </div>
+
+        <!-- Table Container for Common Words -->
+        <div id="table-container"></div>
+
+        <!-- Phrase Analysis Container -->
+        <div id="phrase-analysis-container">
+            <h2>Phrase Analysis</h2>
+            {% if word_details %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Word</th>
+                        <th>POS</th>
+                        <th>Dependency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for word in word_details %}
+                    <tr>
+                        <td>{{ word.text }}</td>
+                        <td>{{ word.pos }}</td>
+                        <td>{{ word.dep }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No analysis available. Please enter a phrase.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        const data = {
+            0: {
+                label: 'Sadness',
+                commonWords: {
+                    verbs: ['feel', 'have', 'do', 'know', 'make'],
+                    adjectives: ['little', 'bad', 'sad', 'sorry', 'lonely'],
+                    adverbs: ['so', 'just', 'really', 'now', 'very'],
+                    nouns: ['feeling', 'time', 'day', 'thing', 'people']
+                }
+            }, 
+            1: {
+                label: 'Joy',
+                commonWords: {
+                    verbs: ['feel', 'have', 'make', 'do', 'get'],
+                    adjectives: ['good', 'little', 'happy', 'strong', 'able'],
+                    adverbs: ['so', 'more', 'just', 'very', 'really'],
+                    nouns: ['feeling', 'time', 'day', 'people', 'thing']
+                }
+            },
+            2: {
+                label: 'Love',
+                commonWords: {
+                    verbs: ['feel', 'have', 'love', 'know', 'make'],
+                    adjectives: ['hot', 'sweet', 'little', 'sympathetic', 'gentle'],
+                    adverbs: ['so', 'just', 'very', 'really', 'more'],
+                    nouns: ['feeling', 'time', 'people', 'life', 'day']
+                }
+            },
+            3: {
+                label: 'Anger',
+                commonWords: {
+                    verbs: ['feel', 'have', 'get', 'do', 'go'],
+                    adjectives: ['little', 'angry', 'selfish', 'jealous', 'frustrated'],
+                    adverbs: ['so', 'just', 'really', 'very', 'now'],
+                    nouns: ['feeling', 'time', 'people', 'thing', 'day']
+                }
+            },
+            4: {
+                label: 'Fear',
+                commonWords: {
+                    verbs: ['feel', 'have', 'go', 'do', 'know'],
+                    adjectives: ['little', 'afraid', 'anxious', 'scared', 'nervous'],
+                    adverbs: ['so', 'just', 'really', 'very', 'still'],
+                    nouns: ['time', 'feeling', 'bit', 'thing', 'people']
+                }
+            },
+            5: {
+                label: 'Surprise',
+                commonWords: {
+                    verbs: ['feel', 'have', 'get', 'know', 'go'],
+                    adjectives: ['weird', 'amazed', 'strange', 'amazing', 'overwhelmed'],
+                    adverbs: ['so', 'just', 'really', 'still', 'very'],
+                    nouns: ['feeling', 'time', 'bit', 'people', 'thing']
+                }
+            }
+        };
+
+        function loadTable(labelIndex) {
+            const labelData = data[labelIndex];
+            const container = document.getElementById('table-container');
+            container.innerHTML = ''; // Clear previous table
+
+            const table = document.createElement('table');
+            const headerRow = document.createElement('tr');
+            const headers = ['Type', 'Words'];
+
+            headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+
+            table.appendChild(headerRow);
+
+            // Add rows for each type of word
+            for (const [type, words] of Object.entries(labelData.commonWords)) {
+                const row = document.createElement('tr');
+                const tdType = document.createElement('td');
+                tdType.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+                row.appendChild(tdType);
+
+                const tdWords = document.createElement('td');
+                tdWords.textContent = words.join(', ');
+                row.appendChild(tdWords);
+
+                table.appendChild(row);
+            }
+
+            container.appendChild(table);
+        }
+    </script>
+</body>
+</html>
