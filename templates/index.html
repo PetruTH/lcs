@@ -12,19 +12,71 @@
         <form method="post" id="emotion-form">
             <label for="phrase">Enter a phrase:</label>
             <input type="text" id="phrase" name="phrase" placeholder="Type your text here" required>
-            <button type="submit">Predict Emotion</button>
+            <button type="submit" name="action" value="bert">Predict Emotion with BERT!</button>
+            <button type="submit" name="action" value="distilbert">Predict Emotion with DISTILBERT!</button>
+            <button type="submit" name="action" value="roberta">Predict Emotion with ROBERTA!</button>
+            <button type="submit" name="action" value="deberta">Predict Emotion with DEBERTA!</button>
+            <button type="submit" name="action" value="all">Compare all models</button>
+
         </form>
+
         {% if predicted_label and confidence_score %}
         <div class="result">
-            <h2>Prediction</h2>
+            <h2>Prediction using {{ action }}</h2>
             <p>
-                The predicted emotion for <span class="highlight"> {{ phrase }} </span> is 
-                <span class="highlight2" id="label">{{ predicted_label }}</span> 
+                The predicted emotion for phrase:  ||
+                <!-- {{ token_highlights }} -->
+                <span class="highlight">
+                    {% for token in token_highlights %}
+                        {% if token.highlight %}
+                            <span class="highlight-token" style="background-color: lightblue">{{ token.token }}</span>
+                        {% else %}
+                            <span class="highlight-token" >{{ token.token }}</span>
+                        {% endif %}
+
+                    {% endfor %}
+                </span> 
+                <span class="highlight2" id="label"> || is the label of: {{ predicted_label }}</span> 
                 with a confidence score of 
                 <span class="highlight2" id="score">{{ confidence_score | round(2) }}</span>.
             </p>
+            <br>
+
+            <div class="all-scores">
+                <h2>Scores for All Labels</h2>
+                <ul>
+                    {% for label, score in all_scores.items() %}
+                    <li>
+                        <strong>{{ label.capitalize() }}:</strong> {{ score | round(2) }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
         {% endif %}
+
+        {% if all_predictions %}
+            <div class="result">
+                <div class="predictions-container">
+                    <h3>All Model Predictions</h3>
+                    <ul>
+                        {% for model, prediction in all_predictions.items() %}
+                            <li class="model-prediction">
+                                <strong>{{ model }}:</strong> 
+                                <span class="confidence">{{ labels[prediction[0]] }}</span> 
+                                (Confidence: <span class="confidence-score">{{ prediction[1]|round(2) }}</span>)
+                                <ul class="label-scores">
+                                    {% for label, score in prediction[2].items() %}
+                                        <li><span class="label">{{ label }}</span>: <span class="score">{{ score|round(2) }}</span></li>
+                                    {% endfor %}
+                                </ul>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>                
+            </div>
+        {% endif %}
+
 
         <!-- Emotion Classification Buttons -->
         <div class="button-container">
@@ -40,31 +92,35 @@
         <div id="table-container"></div>
 
         <!-- Phrase Analysis Container -->
-        <div id="phrase-analysis-container">
-            <h2>Phrase Analysis</h2>
-            {% if word_details %}
-            <table>
-                <thead>
-                    <tr>
-                        <th>Word</th>
-                        <th>POS</th>
-                        <th>Dependency</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for word in word_details %}
-                    <tr>
-                        <td>{{ word.text }}</td>
-                        <td>{{ word.pos }}</td>
-                        <td>{{ word.dep }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-            <p>No analysis available. Please enter a phrase.</p>
-            {% endif %}
+        <div>
+            <button id="toggle-phrase-analysis" class="toggle-button">Show Phrase Analysis</button>
+            <div id="phrase-analysis-container" style="display: none;">
+                <h2>Phrase Analysis</h2>
+                {% if word_details %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Word</th>
+                            <th>POS</th>
+                            <th>Dependency</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for word in word_details %}
+                        <tr>
+                            <td>{{ word.text }}</td>
+                            <td>{{ word.pos }}</td>
+                            <td>{{ word.dep }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p>No analysis available. Please enter a phrase.</p>
+                {% endif %}
+            </div>
         </div>
+        
     </div>
 
     <script>
@@ -72,55 +128,69 @@
             0: {
                 label: 'Sadness',
                 commonWords: {
-                    verbs: ['feel', 'have', 'do', 'know', 'make'],
-                    adjectives: ['little', 'bad', 'sad', 'sorry', 'lonely'],
-                    adverbs: ['so', 'just', 'really', 'now', 'very'],
-                    nouns: ['feeling', 'time', 'day', 'thing', 'people']
+                    adjectives: [
+                        "little", "bad", "good", "sad", "other", "more", "sorry", "lonely", 
+                        "last", "stupid", "many", "guilty", "emotional", "depressed", "much", 
+                        "low", "useless", "horrible", "embarrassed", "terrible", "worthless", 
+                        "unhappy", "awful", "hopeless", "empty"
+                    ],
+
                 }
             }, 
             1: {
                 label: 'Joy',
                 commonWords: {
-                    verbs: ['feel', 'have', 'make', 'do', 'get'],
-                    adjectives: ['good', 'little', 'happy', 'strong', 'able'],
-                    adverbs: ['so', 'more', 'just', 'very', 'really'],
-                    nouns: ['feeling', 'time', 'day', 'people', 'thing']
+                    adjectives: [
+                        "good", "little", "happy", "more", "other", "sure", "new", "many", 
+                        "strong", "able", "excited", "important", "comfortable", "confident", 
+                        "amazing", "well", "free", "wonderful", "positive", "few", "thankful", 
+                        "own", "special", "glad", "sweet"
+                    ],
                 }
             },
             2: {
                 label: 'Love',
                 commonWords: {
-                    verbs: ['feel', 'have', 'love', 'know', 'make'],
-                    adjectives: ['hot', 'sweet', 'little', 'sympathetic', 'gentle'],
-                    adverbs: ['so', 'just', 'very', 'really', 'more'],
-                    nouns: ['feeling', 'time', 'people', 'life', 'day']
+                    adjectives: [
+                        "hot", "sweet", "little", "sympathetic", "gentle", "lovely", "romantic", 
+                        "passionate", "nostalgic", "generous", "supportive", "delicate", "loyal", 
+                        "beloved", "good", "more", "other", "fond", "tender", "faithful", "horny", 
+                        "blessed", "compassionate", "much", "many"
+                    ],
+
                 }
             },
             3: {
                 label: 'Anger',
                 commonWords: {
-                    verbs: ['feel', 'have', 'get', 'do', 'go'],
-                    adjectives: ['little', 'angry', 'selfish', 'jealous', 'frustrated'],
-                    adverbs: ['so', 'just', 'really', 'very', 'now'],
-                    nouns: ['feeling', 'time', 'people', 'thing', 'day']
+                    adjectives: [
+                        "little", "angry", "selfish", "jealous", "frustrated", "irritated", "mad", 
+                        "bitter", "resentful", "other", "irritable", "dangerous", "cold", "rude", 
+                        "grumpy", "cranky", "dissatisfied", "greedy", "impatient", "agitated", 
+                        "mean", "violent", "envious", "good", "annoyed"
+                    ],
                 }
             },
             4: {
                 label: 'Fear',
                 commonWords: {
-                    verbs: ['feel', 'have', 'go', 'do', 'know'],
-                    adjectives: ['little', 'afraid', 'anxious', 'scared', 'nervous'],
-                    adverbs: ['so', 'just', 'really', 'very', 'still'],
-                    nouns: ['time', 'feeling', 'bit', 'thing', 'people']
+                    adjectives: [
+                        "little", "afraid", "anxious", "scared", "nervous", "uncomfortable", 
+                        "weird", "strange", "overwhelmed", "vulnerable", "unsure", "reluctant", 
+                        "shaky", "hesitant", "uncertain", "helpless", "paranoid", "shy", "agitated", 
+                        "insecure", "fearful", "restless", "frightened", "pressured", "confused"
+                    ],
                 }
             },
             5: {
                 label: 'Surprise',
                 commonWords: {
-                    verbs: ['feel', 'have', 'get', 'know', 'go'],
-                    adjectives: ['weird', 'amazed', 'strange', 'amazing', 'overwhelmed'],
-                    adverbs: ['so', 'just', 'really', 'still', 'very'],
-                    nouns: ['feeling', 'time', 'bit', 'people', 'thing']
+                    adjectives: [
+                        "weird", "amazed", "strange", "amazing", "overwhelmed", "curious", "funny", 
+                        "surprised", "impressed", "little", "shocked", "stunned", "other", "good", 
+                        "more", "many", "much", "last", "same", "new", "first", "few", "sure", 
+                        "happy", "own"
+                    ],
                 }
             }
         };
@@ -158,6 +228,24 @@
 
             container.appendChild(table);
         }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const toggleButton = document.getElementById("toggle-phrase-analysis");
+            const container = document.getElementById("phrase-analysis-container");
+
+            toggleButton.addEventListener("click", function () {
+                if (container.style.display === "none") {
+                    container.style.display = "block";
+                    toggleButton.textContent = "Hide Phrase Analysis";
+
+                    // Smooth scroll to the Phrase Analysis container
+                    container.scrollIntoView({ behavior: "smooth" });
+                } else {
+                    container.style.display = "none";
+                    toggleButton.textContent = "Show Phrase Analysis";
+                }
+            });
+        });
     </script>
 </body>
 </html>
