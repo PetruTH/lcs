@@ -5,16 +5,13 @@ body, h1, h2, p, ul, li, form, input, button {
     box-sizing: border-box;
     font-family: Arial, sans-serif;
 }
-
-/* Body and Container */
 body {
+    overflow-y: auto !important; /* Ensure vertical scrolling is always enabled */
     background-color: #f7f9fc;
     color: #333;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    margin: 0;
 }
 
 .container {
@@ -76,17 +73,21 @@ button[type="submit"]:hover {
     padding: 15px;
     border-radius: 5px;
     margin-bottom: 20px;
+    overflow-y: auto;
 }
 
-.result .highlight {
-    color: #ff9900;
-    font-weight: bold;
+.highlight-token {
+    padding: 2px;
+    margin: 0 1px;
+    border-radius: 3px;
 }
 
-.result .highlight2 {
-    color: #4a90e2;
+.highlight-token[style*="lightblue"] {
+    background-color: lightblue;
     font-weight: bold;
+    color: black;
 }
+
 
 /* Buttons for Emotion Classification */
 .button-container {
@@ -169,3 +170,165 @@ table th {
 #phrase-analysis-container td {
     background-color: #fafafa;
 }
+
+.all-scores {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+.all-scores h2 {
+    margin-bottom: 10px;
+    font-size: 1.5em;
+    color: #333;
+    text-align: center;
+}
+
+.all-scores ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.all-scores li {
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.1em;
+}
+
+.all-scores li:last-child {
+    border-bottom: none;
+}
+
+.all-scores li strong {
+    color: #555;
+}
+
+.all-scores li span {
+    font-weight: bold;
+    color: #007BFF;
+}
+
+/* Add hover effect */
+.all-scores li:hover {
+    background-color: #f1f1f1;
+}
+
+.predictions-container {
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.predictions-container h3 {
+    color: #333;
+    font-size: 1.2em;
+    margin-bottom: 12px;
+}
+
+.predictions-container ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.model-prediction {
+    margin-bottom: 12px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 12px;
+}
+
+.model-prediction:last-child {
+    border-bottom: none;
+}
+
+.confidence {
+    color: #4caf50;
+    font-weight: bold;
+}
+
+.confidence-score {
+    color: #007bff;
+    font-weight: bold;
+}
+
+.label-scores {
+    margin-top: 8px;
+    padding-left: 20px;
+}
+
+.label-scores li {
+    margin: 4px 0;
+    font-size: 0.9em;
+}
+
+.label {
+    color: #333;
+    font-weight: bold;
+}
+
+.score {
+    color: #555;
+}
+
+.toggle-button {
+    display: inline-block;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.toggle-button:hover {
+    background-color: #0056b3;
+}
+
+    #phrase-analysis-container {
+        overflow-y: auto; /* Add scroll for overflow */
+        margin-top: 10px;
+        border: 1px solid #ccc; /* Add border for better visibility */
+        border-radius: 5px;
+        padding: 15px;
+        background-color: #f9f9f9; /* Subtle background color */
+    }
+
+    /* Optional: Add a shadow effect for better visibility */
+    #phrase-analysis-container {
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Ensure the body can still scroll even if a container is open */
+    body {
+        overflow-x: hidden; /* Prevent horizontal scrolling */
+    }
+
+    /* Add styling for the toggle button */
+    .toggle-button {
+        margin-top: 10px;
+        display: inline-block;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 16px;
+        font-size: 14px;
+        cursor: pointer;
+        margin-bottom: 10px;
+        transition: background-color 0.3s ease;
+    }
+
+    .toggle-button:hover {
+        background-color: #0056b3;
+    }
