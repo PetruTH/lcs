@@ -157,6 +157,7 @@ def index():
     action = ''
     all_predictions = {}
     highlights = []
+    original_phrase = ''
     
     if request.method == 'POST':
 
@@ -195,7 +196,8 @@ def index():
                 }
                 word_details = analyze_phrase(original_phrase)
 
-    print(f"ORIGINAL: {original_phrase}, CLEANED: {phrase}")
+    if original_phrase and phrase:
+        print(f"ORIGINAL: {original_phrase}, CLEANED: {phrase}")
 
     return render_template(
         'index.html',
