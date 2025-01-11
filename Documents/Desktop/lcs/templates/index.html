@@ -15,7 +15,6 @@
             <button type="submit" name="action" value="bert">Predict Emotion with BERT!</button>
             <button type="submit" name="action" value="distilbert">Predict Emotion with DISTILBERT!</button>
             <button type="submit" name="action" value="roberta">Predict Emotion with ROBERTA!</button>
-            <button type="submit" name="action" value="deberta">Predict Emotion with DEBERTA!</button>
             <button type="submit" name="action" value="all">Compare all models</button>
 
         </form>
@@ -24,9 +23,9 @@
         <div class="result">
             <h2>Prediction using {{ action }}</h2>
             <p>
-                The predicted emotion for phrase:  ||
+                The predicted emotion for phrase:  || {{ phrase }}
                 <!-- {{ token_highlights }} -->
-                <span class="highlight">
+                <!-- <span class="highlight">
                     {% for token in token_highlights %}
                         {% if token.highlight %}
                             <span class="highlight-token" style="background-color: lightblue">{{ token.token }}</span>
@@ -34,8 +33,8 @@
                             <span class="highlight-token" >{{ token.token }}</span>
                         {% endif %}
 
-                    {% endfor %}
-                </span> 
+                    {% endfor %} -->
+                <!-- </span>  -->
                 <span class="highlight2" id="label"> || is the label of: {{ predicted_label }}</span> 
                 with a confidence score of 
                 <span class="highlight2" id="score">{{ confidence_score | round(2) }}</span>.
@@ -103,6 +102,7 @@
                             <th>Word</th>
                             <th>POS</th>
                             <th>Dependency</th>
+                            <th>Morph</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -111,6 +111,7 @@
                             <td>{{ word.text }}</td>
                             <td>{{ word.pos }}</td>
                             <td>{{ word.dep }}</td>
+                            <td>{{ word.morph }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>

@@ -1,3 +1,9 @@
+import nltk
+from nltk.corpus import stopwords
+import re
+nltk.download('stopwords')
+stop_words = set(stopwords.words("english"))
+
 from flask import Flask, render_template, request
 import transformers
 import spacy
@@ -98,10 +104,24 @@ def analyze_phrase(phrase):
     """
     doc = nlp(phrase)
     word_details = [
-        {"text": token.text, "pos": token.pos_, "dep": token.dep_}
+        {"text": token.text, "pos": token.pos_, "dep": token.dep_, "morph": token.morph}
         for token in doc
     ]
     return word_details
+
+def clean_text(text):
+    text = re.sub(r"https?://\S+|www\.\S+", "", text)
+    text = re.sub(r'[!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~]', " ", text)
+    text = re.sub(r"\s+", " ", text)
+    text = re.sub(r"\w*\d\w*", "", text)
+    text = text.lower()
+    text = re.sub(r"[^a-z0-9\s]", "", text)
+    text = text.strip()
+
+    # Remove stopwords
+    tokens = text.split()
+    tokens = [token for token in tokens if token not in stop_words]
+    return " ".join(tokens)
 
 app = Flask(__name__)
 
@@ -111,14 +131,6 @@ def index():
         "text-classification",
         model="./emotion_model/distilbert",
         tokenizer="./emotion_model/distilbert",
-        return_all_scores=True
-    )
-
-    emotion_pipeline_deberta = transformers.pipeline(
-        "text-classification",
-        model="./emotion_model/deberta",
-        tokenizer="./emotion_model/deberta",
-        use_fast=False,  # Force using the slow tokenizer
         return_all_scores=True
     )
 
@@ -148,7 +160,8 @@ def index():
     
     if request.method == 'POST':
 
-        phrase = request.form.get('phrase', '')
+        original_phrase = request.form.get('phrase', '')
+        phrase =  clean_text(original_phrase)
         action = request.form.get('action')  # Get the button action
 
         if action == "bert":
@@ -156,29 +169,21 @@ def index():
                 # Predict emotion
                 predicted_label, confidence_score, all_scores, highlights = predict_emotion_with_highlight(phrase, emotion_pipeline_distilbert)
                 # Analyze phrase with SpaCy
-                word_details = analyze_phrase(phrase)
+                word_details = analyze_phrase(original_phrase)
         
         elif action == "distilbert":
             if phrase:
                 # Predict emotion
                 predicted_label, confidence_score, all_scores, highlights = predict_emotion_with_highlight(phrase, emotion_pipeline_bert)
                 # Analyze phrase with SpaCy
-                word_details = analyze_phrase(phrase)
+                word_details = analyze_phrase(original_phrase)
 
         elif action == "roberta":
             if phrase:
                 # Predict emotion
                 predicted_label, confidence_score, all_scores, highlights = predict_emotion_with_highlight(phrase, emotion_pipeline_roberta)
                 # Analyze phrase with SpaCy
-                word_details = analyze_phrase(phrase)
-
-
-        elif action == "deberta":
-            if phrase:
-                # Predict emotion
-                predicted_label, confidence_score, all_scores, highlights = predict_emotion_with_highlight(phrase, emotion_pipeline_deberta)
-                # Analyze phrase with SpaCy
-                word_details = analyze_phrase(phrase)
+                word_details = analyze_phrase(original_phrase)
 
         elif action == "all":
             if phrase:
@@ -189,11 +194,13 @@ def index():
                     "roberta": predict_emotion_with_highlight(phrase, emotion_pipeline_roberta),
                     "deberta": predict_emotion_with_highlight(phrase, emotion_pipeline_deberta),
                 }
-                word_details = analyze_phrase(phrase)
+                word_details = analyze_phrase(original_phrase)
 
+    print(f"ORIGINAL: {original_phrase}, CLEANED: {phrase}")
+    
     return render_template(
         'index.html',
-        phrase=phrase,
+        phrase=original_phrase,
         action = action,
         labels=labels,
         predicted_label=labels[predicted_label],
@@ -201,12 +208,9 @@ def index():
         confidence_score=confidence_score,
         word_details=word_details,
         all_scores=all_scores,
-        token_highlights=highlights
+        # token_highlights=highlights
     )
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-
-# TODO: HIGHLIGHT EACH PART OF PHRASE CORSEPONDING TO LABEL
 
