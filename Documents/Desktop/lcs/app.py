@@ -192,12 +192,11 @@ def index():
                     "bert": predict_emotion_with_highlight(phrase, emotion_pipeline_bert),
                     "distilbert": predict_emotion_with_highlight(phrase, emotion_pipeline_distilbert),
                     "roberta": predict_emotion_with_highlight(phrase, emotion_pipeline_roberta),
-                    "deberta": predict_emotion_with_highlight(phrase, emotion_pipeline_deberta),
                 }
                 word_details = analyze_phrase(original_phrase)
 
     print(f"ORIGINAL: {original_phrase}, CLEANED: {phrase}")
-    
+
     return render_template(
         'index.html',
         phrase=original_phrase,
